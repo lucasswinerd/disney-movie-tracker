@@ -86,6 +86,11 @@
   .movie-card.seen.show-seen{display:block;opacity:.38;filter:grayscale(.85);}
   .movie-card.seen.show-seen:hover{opacity:.58;}
   .movie-card.seen.show-seen .card-title{text-decoration:line-through;text-decoration-color:var(--text-dim);}
+  .movie-card.skipped{display:none;}
+  .movie-card.skipped.show-seen{display:block;opacity:.35;filter:grayscale(.6);}
+  .movie-card.skipped.show-seen:hover{opacity:.52;}
+  .movie-card.skipped.show-seen.disney{border-style:dashed;border-color:#f5c84240;}
+  .movie-card.skipped.show-seen.pixar{border-style:dashed;border-color:#00b4e640;}
 
   .studio-icon{position:absolute;top:7px;right:7px;width:28px;height:28px;border-radius:50%;
     display:flex;align-items:center;justify-content:center;z-index:2;padding:5px;
@@ -123,6 +128,14 @@
     display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;
     font-size:.7rem;color:var(--text-muted);transition:background .15s,border-color .15s,color .15s;}
   .card-info-btn:hover{background:var(--border);color:var(--text);}
+  .card-skip-btn{width:24px;height:24px;border-radius:50%;background:var(--surface2);border:1px solid var(--border);
+    display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;
+    font-size:.72rem;color:var(--text-muted);transition:background .15s,border-color .15s,color .15s;}
+  .card-skip-btn:hover{background:#3d3050;border-color:#6b5090;color:#b09fd0;}
+  .movie-card.skipped .card-skip-btn{background:#3d305088;border-color:#6b509088;color:#b09fd0;}
+  .movie-card.skipped .checkbox-label{color:var(--text-dim);}
+
+  .next-up{cursor:pointer;}
 
   .era-all-seen{text-align:center;color:var(--text-dim);font-size:.8rem;letter-spacing:.08em;
     text-transform:uppercase;padding:1.5rem;border:1px dashed var(--border);border-radius:12px;display:none;}
@@ -189,6 +202,11 @@
   .modal-seen-btn.not-seen:hover{background:var(--border);color:var(--text);}
   .modal-seen-btn.is-seen.disney{background:var(--gold-dim);color:#000;}
   .modal-seen-btn.is-seen.pixar{background:var(--pixar-dim);color:#000;}
+  .modal-skip-btn{padding:.7rem 1rem;border-radius:10px;border:1px solid var(--border);cursor:pointer;
+    font-family:'DM Sans',sans-serif;font-size:.85rem;font-weight:600;transition:all .15s;
+    background:var(--surface2);color:var(--text-muted);white-space:nowrap;}
+  .modal-skip-btn:hover{background:#3d3050;border-color:#6b5090;color:#b09fd0;}
+  .modal-skip-btn.is-skipped{background:#3d305088;border-color:#6b509088;color:#b09fd0;}
   .modal-close{width:36px;height:36px;border-radius:50%;background:var(--surface2);border:1px solid var(--border);
     cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text-muted);
     font-size:1.1rem;transition:all .15s;flex-shrink:0;}
@@ -201,32 +219,9 @@
     .modal-title{font-size:1.05rem;}
     .modal-info{padding:1rem;}
   }
-
-  /* ── FSA SYNC STATUS ── */
-  .sync-bar{display:flex;align-items:center;justify-content:center;gap:.6rem;
-    padding:.55rem 1rem;font-size:.72rem;letter-spacing:.04em;border-bottom:1px solid var(--border);}
-  .sync-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
-  .sync-bar.synced .sync-dot{background:#2ec875;}
-  .sync-bar.local  .sync-dot{background:var(--text-dim);}
-  .sync-bar.saving .sync-dot{background:var(--gold);animation:pulse .8s infinite;}
-  .sync-bar.error  .sync-dot{background:#e87050;}
-  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
-  .sync-bar.synced{color:var(--text-muted);}
-  .sync-bar.local {color:var(--text-dim);}
-  .sync-bar.saving{color:var(--gold-dim);}
-  .sync-bar.error {color:#e87050;}
-  .sync-btn{background:none;border:1px solid var(--border);border-radius:100px;
-    padding:.2rem .6rem;font-size:.68rem;font-family:'DM Sans',sans-serif;
-    color:var(--text-muted);cursor:pointer;transition:all .15s;margin-left:.25rem;}
-  .sync-btn:hover{background:var(--border);color:var(--text);}
 </style>
 </head>
 <body>
-
-<div class="sync-bar local" id="sync-bar">
-  <div class="sync-dot"></div>
-  <span id="sync-label">Conectando ao Supabase…</span>
-</div>
 
 <header>
   <h1>Disney & Pixar Tracker</h1>
@@ -299,6 +294,7 @@
     </div>
     <div class="modal-actions">
       <button class="modal-seen-btn" id="modal-seen-btn" onclick="toggleSeenFromModal()"></button>
+      <button class="modal-skip-btn" id="modal-skip-btn" onclick="toggleSkipFromModal()"></button>
       <button class="modal-close" onclick="closeModal()">✕</button>
     </div>
   </div>
@@ -563,79 +559,36 @@ const LAMP_SVG=mkSVG(PIXAR_PATH,'currentColor');
 const DISNEY_TOTAL=FILMS.filter(f=>f.studio==='disney').length;
 const PIXAR_TOTAL=FILMS.filter(f=>f.studio==='pixar').length;
 let seen=JSON.parse(localStorage.getItem('dp-seen-v2')||'{}');
+let skipped=JSON.parse(localStorage.getItem('dp-skipped-v1')||'{}');
 let showSeen=false,currentFilm=null;
 
-// ── SUPABASE SYNC ─────────────────────────────────────────────────────────
-const SB_URL='https://pfpdpojqgglyjztcgjpp.supabase.co';
-const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBmcGRwb2pxZ2dseWp6dGNnanBwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA0MTgxNTAsImV4cCI6MjA5NTk5NDE1MH0.9LuVDLJHH_p8FF9b_RK18INAgjjMd4DyAYElhJWPu1g';
-const SB_HEADERS={'Content-Type':'application/json','apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY};
+function save(){localStorage.setItem('dp-seen-v2',JSON.stringify(seen));}
+function saveSkipped(){localStorage.setItem('dp-skipped-v1',JSON.stringify(skipped));}
 
-let _saveTimer=null;
-
-function setSyncUI(state,label){
-  const bar=document.getElementById('sync-bar');
-  const lbl=document.getElementById('sync-label');
-  bar.className=`sync-bar ${state}`;
-  lbl.textContent=label;
-  // hide the button once supabase is working
-  const btn=document.getElementById('sync-btn');
-  if(btn) btn.style.display='none';
+function toggleSeen(id){
+  seen[id]=!seen[id];
+  if(seen[id])skipped[id]=false; // can't be both
+  save();saveSkipped();render();
 }
-
-async function loadFromSupabase(){
-  try{
-    setSyncUI('saving','Carregando progresso…');
-    const res=await fetch(`${SB_URL}/rest/v1/progress?id=eq.main&select=seen`,{headers:SB_HEADERS});
-    if(!res.ok) throw new Error(res.status);
-    const rows=await res.json();
-    if(rows.length&&rows[0].seen){
-      seen=rows[0].seen;
-      localStorage.setItem('dp-seen-v2',JSON.stringify(seen));
-      render();
-    }
-    setSyncUI('synced','✓ Sincronizado com Supabase');
-  }catch(e){
-    setSyncUI('error','Erro ao conectar — usando dados locais');
-  }
+function toggleSkip(id){
+  skipped[id]=!skipped[id];
+  if(skipped[id])seen[id]=false; // can't be both
+  save();saveSkipped();render();
 }
-
-async function saveToSupabase(){
-  try{
-    setSyncUI('saving','Salvando…');
-    const res=await fetch(`${SB_URL}/rest/v1/progress?id=eq.main`,{
-      method:'PATCH',
-      headers:{...SB_HEADERS,'Prefer':'return=minimal'},
-      body:JSON.stringify({seen,updated_at:new Date().toISOString()})
-    });
-    if(!res.ok) throw new Error(res.status);
-    setSyncUI('synced',`✓ Salvo · ${new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}`);
-  }catch(e){
-    setSyncUI('error','Erro ao salvar — dados preservados localmente');
-  }
-}
-
-function save(){
-  localStorage.setItem('dp-seen-v2',JSON.stringify(seen));
-  // debounce supabase writes by 600ms to avoid hammering on rapid clicks
-  clearTimeout(_saveTimer);
-  _saveTimer=setTimeout(saveToSupabase,600);
-}
-function toggleSeen(id){seen[id]=!seen[id];save();render();}
 function toggleSeenFromModal(){if(!currentFilm)return;toggleSeen(currentFilm.id);updateModalBtn(currentFilm);}
-
-// Load from Supabase on startup
-loadFromSupabase();
+function toggleSkipFromModal(){if(!currentFilm)return;toggleSkip(currentFilm.id);updateModalBtn(currentFilm);}
 
 function toggleShowSeen(){
   showSeen=!showSeen;
   document.getElementById('toggle-seen').classList.toggle('active',showSeen);
   document.querySelectorAll('.movie-card.seen').forEach(el=>el.classList.toggle('show-seen',showSeen));
+  document.querySelectorAll('.movie-card.skipped').forEach(el=>el.classList.toggle('show-seen',showSeen));
   updateEraEmpty();
 }
 function updateEraEmpty(){
   document.querySelectorAll('.era-section').forEach(s=>{
     const cards=[...s.querySelectorAll('.movie-card')];
-    const all=cards.length>0&&cards.every(c=>c.classList.contains('seen'));
+    const all=cards.length>0&&cards.every(c=>c.classList.contains('seen')||c.classList.contains('skipped'));
     const m=s.querySelector('.era-all-seen');if(m)m.style.display=(all&&!showSeen)?'block':'none';
   });
 }
@@ -691,9 +644,13 @@ function openModal(film){
 
 function updateModalBtn(film){
   const btn=document.getElementById('modal-seen-btn');
+  const skipBtn=document.getElementById('modal-skip-btn');
   const isSeen=!!seen[film.id];
+  const isSkipped=!!skipped[film.id];
   btn.className=`modal-seen-btn ${isSeen?'is-seen':'not-seen'} ${film.studio}`;
   btn.textContent=isSeen?'✓ Marcado como visto':'Marcar como visto';
+  skipBtn.className=`modal-skip-btn ${isSkipped?'is-skipped':''}`;
+  skipBtn.textContent=isSkipped?'⏭ Ignorado':'⏭ Ignorar';
 }
 
 function closeModal(){
@@ -717,7 +674,7 @@ function render(){
   document.getElementById('cnt-pixar').textContent=` · ${sp} de ${PIXAR_TOTAL}`;
   document.getElementById('bar-pixar').style.width=pP+'%';
 
-  const next=FILMS.find(f=>!seen[f.id]);
+  const next=FILMS.find(f=>!seen[f.id]&&!skipped[f.id]);
   if(next){
     document.getElementById('next-title').childNodes[0].textContent=next.title;
     document.getElementById('next-title-pt').textContent=(next.pt&&next.pt!==next.title)?next.pt:'';
@@ -725,7 +682,12 @@ function render(){
     document.getElementById('next-studio').innerHTML=next.studio==='pixar'
       ?'<span style="color:var(--pixar)">● Pixar</span>'
       :'<span style="color:var(--gold)">● Disney</span>';
-    document.getElementById('next-up').style.display='flex';
+    const nextUp=document.getElementById('next-up');
+    nextUp.style.display='flex';
+    nextUp.onclick=()=>{
+      const card=document.querySelector(`[data-film="${next.id}"]`);
+      if(card)card.scrollIntoView({behavior:'smooth',block:'center'});
+    };
   }else document.getElementById('next-up').style.display='none';
 
   const eg=document.getElementById('era-grid');eg.innerHTML='';
@@ -750,10 +712,15 @@ function render(){
 
     films.forEach(film=>{
       const isSeen=!!seen[film.id];
+      const isSkipped=!!skipped[film.id];
       const card=document.createElement('div');
-      card.className=['movie-card',film.studio,isSeen?'seen':'',isSeen&&showSeen?'show-seen':''].filter(Boolean).join(' ');
+      card.className=['movie-card',film.studio,
+        isSeen?'seen':'',isSeen&&showSeen?'show-seen':'',
+        isSkipped?'skipped':'',isSkipped&&showSeen?'show-seen':''
+      ].filter(Boolean).join(' ');
       card.dataset.film=film.id;
       const ptHtml=(film.pt&&film.pt!==film.title)?`<div class="card-title-pt">${film.pt}</div>`:'';
+      const checkLabel=isSeen?'Visto':isSkipped?'<span style="color:#8070a8">⏭ Ignorado</span>':'Marcar';
       card.innerHTML=`
         <div class="studio-icon ${film.studio}">${film.studio==='pixar'?LAMP_SVG:CASTLE_SVG}</div>
         <div class="card-poster-wrap">
@@ -771,13 +738,15 @@ function render(){
                   <path d="M1 4L3.5 6.5L9 1" stroke="#000" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
               </div>
-              <span class="checkbox-label">${isSeen?'Visto':'Marcar'}</span>
+              <span class="checkbox-label">${checkLabel}</span>
             </div>
+            <div class="card-skip-btn" title="Ignorar este filme">⏭</div>
             <div class="card-info-btn" title="Ver detalhes">ℹ</div>
           </div>
         </div>`;
 
       card.querySelector('.card-seen-btn').addEventListener('click',e=>{e.stopPropagation();toggleSeen(film.id);});
+      card.querySelector('.card-skip-btn').addEventListener('click',e=>{e.stopPropagation();toggleSkip(film.id);});
       card.querySelector('.card-info-btn').addEventListener('click',e=>{e.stopPropagation();openModal(film);});
       card.addEventListener('click',()=>openModal(film));
       grid.appendChild(card);toLoad.push(film);
