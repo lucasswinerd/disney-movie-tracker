@@ -201,9 +201,33 @@
     .modal-title{font-size:1.05rem;}
     .modal-info{padding:1rem;}
   }
+
+  /* ── FSA SYNC STATUS ── */
+  .sync-bar{display:flex;align-items:center;justify-content:center;gap:.6rem;
+    padding:.55rem 1rem;font-size:.72rem;letter-spacing:.04em;border-bottom:1px solid var(--border);}
+  .sync-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+  .sync-bar.synced .sync-dot{background:#2ec875;}
+  .sync-bar.local  .sync-dot{background:var(--text-dim);}
+  .sync-bar.saving .sync-dot{background:var(--gold);animation:pulse .8s infinite;}
+  .sync-bar.error  .sync-dot{background:#e87050;}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+  .sync-bar.synced{color:var(--text-muted);}
+  .sync-bar.local {color:var(--text-dim);}
+  .sync-bar.saving{color:var(--gold-dim);}
+  .sync-bar.error {color:#e87050;}
+  .sync-btn{background:none;border:1px solid var(--border);border-radius:100px;
+    padding:.2rem .6rem;font-size:.68rem;font-family:'DM Sans',sans-serif;
+    color:var(--text-muted);cursor:pointer;transition:all .15s;margin-left:.25rem;}
+  .sync-btn:hover{background:var(--border);color:var(--text);}
 </style>
 </head>
 <body>
+
+<div class="sync-bar local" id="sync-bar">
+  <div class="sync-dot"></div>
+  <span id="sync-label">Salvando localmente (localStorage)</span>
+  <button class="sync-btn" id="sync-btn" onclick="setupFSA()">💾 Vincular pasta</button>
+</div>
 
 <header>
   <h1>Disney & Pixar Tracker</h1>
@@ -542,9 +566,90 @@ const PIXAR_TOTAL=FILMS.filter(f=>f.studio==='pixar').length;
 let seen=JSON.parse(localStorage.getItem('dp-seen-v2')||'{}');
 let showSeen=false,currentFilm=null;
 
-function save(){localStorage.setItem('dp-seen-v2',JSON.stringify(seen));}
+// ── FILE SYSTEM ACCESS API ────────────────────────────────────────────────
+let _dirHandle=null;
+const FSA_SUPPORTED=('showDirectoryPicker' in window);
+const FSA_FILE='progresso.json';
+
+function setSyncUI(state,label,showBtn=false){
+  const bar=document.getElementById('sync-bar');
+  const lbl=document.getElementById('sync-label');
+  const btn=document.getElementById('sync-btn');
+  bar.className=`sync-bar ${state}`;
+  lbl.textContent=label;
+  btn.style.display=showBtn?'inline-block':'none';
+}
+
+async function setupFSA(){
+  if(!FSA_SUPPORTED){setSyncUI('local','Seu browser não suporta File System Access API',false);return;}
+  try{
+    _dirHandle=await window.showDirectoryPicker({mode:'readwrite',startIn:'documents',id:'dp-tracker'});
+    localStorage.setItem('dp-fsa-enabled','1');
+    setSyncUI('saving','Vinculando pasta…',false);
+    await writeProgress();
+    setSyncUI('synced',`✓ Sincronizado com pasta "${_dirHandle.name}"`,false);
+  }catch(e){
+    if(e.name!=='AbortError') setSyncUI('error','Erro ao vincular pasta',true);
+    else setSyncUI('local','Salvando localmente (localStorage)',true);
+  }
+}
+
+async function writeProgress(){
+  if(!_dirHandle)return;
+  try{
+    setSyncUI('saving','Salvando…',false);
+    const fh=await _dirHandle.getFileHandle(FSA_FILE,{create:true});
+    const w=await fh.createWritable();
+    await w.write(JSON.stringify({seen,savedAt:new Date().toISOString()}));
+    await w.close();
+    setSyncUI('synced',`✓ Salvo em "${_dirHandle.name}" · ${new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}`,false);
+  }catch(e){
+    setSyncUI('error','Erro ao salvar — clique para tentar reconectar',true);
+    document.getElementById('sync-btn').textContent='🔄 Reconectar';
+    _dirHandle=null;
+  }
+}
+
+async function readProgress(){
+  if(!_dirHandle)return;
+  try{
+    const fh=await _dirHandle.getFileHandle(FSA_FILE);
+    const file=await fh.getFile();
+    const data=JSON.parse(await file.text());
+    if(data?.seen){
+      seen=data.seen;
+      localStorage.setItem('dp-seen-v2',JSON.stringify(seen));
+      render();
+      setSyncUI('synced',`✓ Progresso carregado de "${_dirHandle.name}"`,false);
+    }
+  }catch(e){
+    // file doesn't exist yet — that's fine, will be created on first save
+    setSyncUI('synced',`✓ Pasta vinculada: "${_dirHandle.name}"`,false);
+  }
+}
+
+async function tryRestoreDir(){
+  // Can't auto-restore dirHandle across sessions — browser requires user gesture.
+  // But if FSA was previously set up, show a prompt to reconnect.
+  if(FSA_SUPPORTED && localStorage.getItem('dp-fsa-enabled')==='1'){
+    setSyncUI('local','Clique para reconectar sua pasta de progresso',true);
+    document.getElementById('sync-btn').textContent='📂 Reconectar pasta';
+  } else if(!FSA_SUPPORTED){
+    setSyncUI('local','Salvando localmente (localStorage)',false);
+  } else {
+    setSyncUI('local','Salvando localmente (localStorage)',true);
+  }
+}
+
+function save(){
+  localStorage.setItem('dp-seen-v2',JSON.stringify(seen));
+  if(_dirHandle) writeProgress();
+}
 function toggleSeen(id){seen[id]=!seen[id];save();render();}
 function toggleSeenFromModal(){if(!currentFilm)return;toggleSeen(currentFilm.id);updateModalBtn(currentFilm);}
+
+// Init FSA state on load
+tryRestoreDir();
 
 function toggleShowSeen(){
   showSeen=!showSeen;
@@ -724,6 +829,8 @@ function render(){
 }
 
 render();
+// If user had previously linked a folder, readProgress is a no-op until
+// they click reconnect (browser blocks auto directory access without gesture).
 </script>
 </body>
 </html>
