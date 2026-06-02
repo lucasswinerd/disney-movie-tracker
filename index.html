@@ -61,7 +61,11 @@
   .era-mini-bar{margin-top:.5rem;background:var(--surface2);border-radius:100px;height:4px;overflow:hidden;}
   .era-mini-fill{height:100%;background:linear-gradient(90deg,var(--gold-dim),var(--gold));border-radius:100px;transition:width .5s ease;}
 
-  .controls{max-width:960px;margin:0 auto 1rem;padding:0 1.5rem;display:flex;align-items:center;justify-content:flex-end;}
+  .controls{max-width:960px;margin:1.75rem auto 1rem;padding:0 1.5rem;display:flex;align-items:center;justify-content:flex-end;gap:1rem;}
+  .stats-btn{background:none;border:1px solid var(--border);border-radius:100px;
+    color:var(--text-muted);font-family:'DM Sans',sans-serif;font-size:.8rem;
+    padding:.35rem .9rem;cursor:pointer;letter-spacing:.04em;transition:color .2s,border-color .2s;}
+  .stats-btn:hover{color:var(--text);border-color:var(--gold-dim);}
   .toggle-seen{display:flex;align-items:center;gap:.5rem;cursor:pointer;font-size:.8rem;color:var(--text-muted);letter-spacing:.05em;text-transform:uppercase;user-select:none;transition:color .2s;}
   .toggle-seen:hover{color:var(--text);}
   .toggle-switch{width:36px;height:20px;background:var(--surface2);border:1px solid var(--border);border-radius:100px;position:relative;transition:background .2s,border-color .2s;}
@@ -86,11 +90,6 @@
   .movie-card.seen.show-seen{display:block;opacity:.38;filter:grayscale(.85);}
   .movie-card.seen.show-seen:hover{opacity:.58;}
   .movie-card.seen.show-seen .card-title{text-decoration:line-through;text-decoration-color:var(--text-dim);}
-  .movie-card.skipped{display:none;}
-  .movie-card.skipped.show-seen{display:block;opacity:.35;filter:grayscale(.6);}
-  .movie-card.skipped.show-seen:hover{opacity:.52;}
-  .movie-card.skipped.show-seen.disney{border-style:dashed;border-color:#f5c84240;}
-  .movie-card.skipped.show-seen.pixar{border-style:dashed;border-color:#00b4e640;}
 
   .studio-icon{position:absolute;top:7px;right:7px;width:28px;height:28px;border-radius:50%;
     display:flex;align-items:center;justify-content:center;z-index:2;padding:5px;
@@ -109,10 +108,13 @@
   .card-poster{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .4s;display:block;}
   .card-poster.loaded{opacity:1;}
 
-  .card-body{padding:.75rem;}
-  .card-title{font-family:'Playfair Display',serif;font-size:.85rem;font-weight:700;line-height:1.25;margin-bottom:.2rem;}
-  .card-title-pt{font-size:.7rem;color:var(--text-muted);font-style:italic;line-height:1.3;margin-bottom:.4rem;}
-  .card-year{font-size:.7rem;color:var(--text-dim);margin-bottom:.6rem;}
+  .card-body{padding:.75rem;display:flex;flex-direction:column;justify-content:space-between;min-height:7.5rem;}
+  .card-body-text{flex:1;}
+  .card-title{font-family:'Playfair Display',serif;font-size:.85rem;font-weight:700;line-height:1.25;margin-bottom:.2rem;
+    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+  .card-title-pt{font-size:.7rem;color:var(--text-muted);font-style:italic;line-height:1.3;margin-bottom:.4rem;
+    display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden;}
+  .card-year{font-size:.7rem;color:var(--text-dim);margin-top:.3rem;margin-bottom:.6rem;}
   .card-actions{display:flex;align-items:center;justify-content:space-between;gap:.4rem;}
   .card-seen-btn{display:flex;align-items:center;gap:.4rem;cursor:pointer;flex:1;}
   .checkbox-box{width:16px;height:16px;border:1.5px solid var(--border);border-radius:4px;background:var(--surface2);
@@ -128,14 +130,6 @@
     display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;
     font-size:.7rem;color:var(--text-muted);transition:background .15s,border-color .15s,color .15s;}
   .card-info-btn:hover{background:var(--border);color:var(--text);}
-  .card-skip-btn{width:24px;height:24px;border-radius:50%;background:var(--surface2);border:1px solid var(--border);
-    display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;
-    font-size:.72rem;color:var(--text-muted);transition:background .15s,border-color .15s,color .15s;}
-  .card-skip-btn:hover{background:#3d3050;border-color:#6b5090;color:#b09fd0;}
-  .movie-card.skipped .card-skip-btn{background:#3d305088;border-color:#6b509088;color:#b09fd0;}
-  .movie-card.skipped .checkbox-label{color:var(--text-dim);}
-
-  .next-up{cursor:pointer;}
 
   .era-all-seen{text-align:center;color:var(--text-dim);font-size:.8rem;letter-spacing:.08em;
     text-transform:uppercase;padding:1.5rem;border:1px dashed var(--border);border-radius:12px;display:none;}
@@ -202,11 +196,6 @@
   .modal-seen-btn.not-seen:hover{background:var(--border);color:var(--text);}
   .modal-seen-btn.is-seen.disney{background:var(--gold-dim);color:#000;}
   .modal-seen-btn.is-seen.pixar{background:var(--pixar-dim);color:#000;}
-  .modal-skip-btn{padding:.7rem 1rem;border-radius:10px;border:1px solid var(--border);cursor:pointer;
-    font-family:'DM Sans',sans-serif;font-size:.85rem;font-weight:600;transition:all .15s;
-    background:var(--surface2);color:var(--text-muted);white-space:nowrap;}
-  .modal-skip-btn:hover{background:#3d3050;border-color:#6b5090;color:#b09fd0;}
-  .modal-skip-btn.is-skipped{background:#3d305088;border-color:#6b509088;color:#b09fd0;}
   .modal-close{width:36px;height:36px;border-radius:50%;background:var(--surface2);border:1px solid var(--border);
     cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text-muted);
     font-size:1.1rem;transition:all .15s;flex-shrink:0;}
@@ -219,9 +208,32 @@
     .modal-title{font-size:1.05rem;}
     .modal-info{padding:1rem;}
   }
+
+  /* ── SCROLL-TO-NEXT ── */
+  .next-up{cursor:pointer;}
+  .next-up:hover .next-up-badge{background:var(--gold-dim);}
+
+  /* ── TOAST ── */
+  .toast-container{position:fixed;top:1.5rem;left:50%;transform:translateX(-50%);z-index:2000;
+    display:flex;flex-direction:column;align-items:center;gap:.5rem;pointer-events:none;}
+  .toast{background:linear-gradient(135deg,#1a1208,#2a1f06);
+    border:1px solid var(--gold-dim);border-radius:100px;
+    padding:.65rem 1.4rem;display:flex;align-items:center;gap:.6rem;
+    box-shadow:0 4px 24px rgba(245,200,66,.2);
+    animation:toast-in .35s cubic-bezier(.34,1.56,.64,1) forwards;
+    font-size:.85rem;color:var(--gold);white-space:nowrap;}
+  .toast.toast-out{animation:toast-out .3s ease forwards;}
+  .toast-icon{font-size:1.1rem;}
+  @keyframes toast-in{from{opacity:0;transform:translateY(-12px) scale(.92)}to{opacity:1;transform:translateY(0) scale(1)}}
+  @keyframes toast-out{from{opacity:1;transform:translateY(0) scale(1)}to{opacity:0;transform:translateY(-8px) scale(.95)}}
+
+  /* ── DATE WATCHED in modal ── */
+  .modal-date-watched{font-size:.7rem;color:var(--text-muted);margin-top:.1rem;font-style:italic;}
 </style>
 </head>
 <body>
+
+<div class="toast-container" id="toast-container"></div>
 
 <header>
   <h1>Disney & Pixar Tracker</h1>
@@ -238,40 +250,15 @@
   </div>
 </header>
 
-<div class="progress-section">
-  <div class="progress-row">
-    <div class="progress-main disney-card">
-      <div class="progress-top">
-        <span class="progress-label">🏰 Disney</span>
-        <div><span class="progress-percent disney-pct" id="pct-disney">0%</span><span class="progress-count" id="cnt-disney"></span></div>
-      </div>
-      <div class="progress-bar-wrap"><div class="progress-bar-fill disney-fill" id="bar-disney" style="width:0%"></div></div>
-    </div>
-    <div class="progress-main pixar-card">
-      <div class="progress-top">
-        <span class="progress-label">🔵 Pixar</span>
-        <div><span class="progress-percent pixar-pct" id="pct-pixar">0%</span><span class="progress-count" id="cnt-pixar"></span></div>
-      </div>
-      <div class="progress-bar-wrap"><div class="progress-bar-fill pixar-fill" id="bar-pixar" style="width:0%"></div></div>
-    </div>
-  </div>
-  <div class="next-up" id="next-up">
-    <span class="next-up-badge">▶ Próximo</span>
-    <div class="next-up-title" id="next-title">—<small id="next-title-pt"></small></div>
-    <div class="next-up-meta">
-      <span class="next-up-year" id="next-year"></span>
-      <span class="next-up-studio" id="next-studio"></span>
-    </div>
-  </div>
-  <div class="era-grid" id="era-grid"></div>
-</div>
-
 <div class="controls">
+  <button class="stats-btn" onclick="scrollToStats()">↓ Stats</button>
   <div class="toggle-seen" id="toggle-seen" onclick="toggleShowSeen()">
     <div class="toggle-switch"></div>
     Mostrar já vistos
   </div>
 </div>
+
+<div id="next-up-top-wrap" style="max-width:960px;margin:0 auto .5rem;padding:0 1.5rem;"></div>
 
 <div class="main" id="main"></div>
 
@@ -294,7 +281,6 @@
     </div>
     <div class="modal-actions">
       <button class="modal-seen-btn" id="modal-seen-btn" onclick="toggleSeenFromModal()"></button>
-      <button class="modal-skip-btn" id="modal-skip-btn" onclick="toggleSkipFromModal()"></button>
       <button class="modal-close" onclick="closeModal()">✕</button>
     </div>
   </div>
@@ -559,41 +545,80 @@ const LAMP_SVG=mkSVG(PIXAR_PATH,'currentColor');
 const DISNEY_TOTAL=FILMS.filter(f=>f.studio==='disney').length;
 const PIXAR_TOTAL=FILMS.filter(f=>f.studio==='pixar').length;
 let seen=JSON.parse(localStorage.getItem('dp-seen-v2')||'{}');
-let skipped=JSON.parse(localStorage.getItem('dp-skipped-v1')||'{}');
+let watchedDates=JSON.parse(localStorage.getItem('dp-dates-v1')||'{}');
 let showSeen=false,currentFilm=null;
 
 function save(){localStorage.setItem('dp-seen-v2',JSON.stringify(seen));}
-function saveSkipped(){localStorage.setItem('dp-skipped-v1',JSON.stringify(skipped));}
+function saveDates(){localStorage.setItem('dp-dates-v1',JSON.stringify(watchedDates));}
+
+// ── TOAST ────────────────────────────────────────────────────────────────
+function showToast(icon,msg){
+  const c=document.getElementById('toast-container');
+  const t=document.createElement('div');t.className='toast';
+  t.innerHTML=`<span class="toast-icon">${icon}</span><span>${msg}</span>`;
+  c.appendChild(t);
+  setTimeout(()=>{t.classList.add('toast-out');setTimeout(()=>t.remove(),320);},3000);
+}
+
+// ── MILESTONES ───────────────────────────────────────────────────────────
+const MILESTONES=[25,50,75,100];
+let _milestonesSeen=JSON.parse(localStorage.getItem('dp-milestones-v1')||'{}');
+function saveMilestones(){localStorage.setItem('dp-milestones-v1',JSON.stringify(_milestonesSeen));}
+
+function checkMilestones(prevSeen){
+  ['disney','pixar'].forEach(studio=>{
+    const total=studio==='disney'?DISNEY_TOTAL:PIXAR_TOTAL;
+    const prevCount=FILMS.filter(f=>f.studio===studio&&prevSeen[f.id]).length;
+    const newCount=FILMS.filter(f=>f.studio===studio&&seen[f.id]).length;
+    const prevPct=Math.round(prevCount/total*100);
+    const newPct=Math.round(newCount/total*100);
+    MILESTONES.forEach(m=>{
+      const key=`${studio}-${m}`;
+      if(newPct>=m&&prevPct<m&&!_milestonesSeen[key]){
+        _milestonesSeen[key]=true;saveMilestones();
+        const label=studio==='disney'?'Disney':'Pixar';
+        const icon=m===100?'🏆':m===75?'🥇':m===50?'🎉':'⭐';
+        showToast(icon,`${label} ${m}% concluído!`);
+      }
+    });
+  });
+}
 
 function toggleSeen(id){
+  const prev={...seen};
   seen[id]=!seen[id];
-  if(seen[id])skipped[id]=false; // can't be both
-  save();saveSkipped();render();
-}
-function toggleSkip(id){
-  skipped[id]=!skipped[id];
-  if(skipped[id])seen[id]=false; // can't be both
-  save();saveSkipped();render();
+  if(seen[id]) watchedDates[id]=new Date().toISOString().slice(0,10);
+  else delete watchedDates[id];
+  save();saveDates();
+  checkMilestones(prev);
+  render();
 }
 function toggleSeenFromModal(){if(!currentFilm)return;toggleSeen(currentFilm.id);updateModalBtn(currentFilm);}
-function toggleSkipFromModal(){if(!currentFilm)return;toggleSkip(currentFilm.id);updateModalBtn(currentFilm);}
 
 function toggleShowSeen(){
   showSeen=!showSeen;
   document.getElementById('toggle-seen').classList.toggle('active',showSeen);
   document.querySelectorAll('.movie-card.seen').forEach(el=>el.classList.toggle('show-seen',showSeen));
-  document.querySelectorAll('.movie-card.skipped').forEach(el=>el.classList.toggle('show-seen',showSeen));
   updateEraEmpty();
 }
 function updateEraEmpty(){
   document.querySelectorAll('.era-section').forEach(s=>{
     const cards=[...s.querySelectorAll('.movie-card')];
-    const all=cards.length>0&&cards.every(c=>c.classList.contains('seen')||c.classList.contains('skipped'));
+    const all=cards.length>0&&cards.every(c=>c.classList.contains('seen'));
     const m=s.querySelector('.era-all-seen');if(m)m.style.display=(all&&!showSeen)?'block':'none';
   });
 }
 
-// ── MODAL ─────────────────────────────────────────────────────────────────
+function scrollToStats(){
+  const el=document.getElementById('stats-section');
+  if(el)el.scrollIntoView({behavior:'smooth',block:'start'});
+}
+function scrollToNext(){
+  const next=FILMS.find(f=>!seen[f.id]);
+  if(!next)return;
+  const card=document.querySelector(`[data-film="${next.id}"]`);
+  if(card)card.scrollIntoView({behavior:'smooth',block:'center'});
+}
 function openModal(film){
   currentFilm=film;
   const s=SCORES[film.id]||[null,null,null,null];
@@ -609,10 +634,15 @@ function openModal(film){
   const ptEl=document.getElementById('modal-title-pt');
   ptEl.textContent=(film.pt&&film.pt!==film.title)?film.pt:'';
 
-  // tags (year, era, runtime)
+  // tags (year, era, runtime, date watched)
   const tags=document.getElementById('modal-tags');
   let tagsHtml=`<span class="modal-tag">${film.year}</span><span class="modal-tag">${film.eraIcon} ${film.era}</span>`;
   if(runtime){const h=Math.floor(runtime/60),m=runtime%60;tagsHtml+=`<span class="modal-tag">⏱ ${h>0?h+'h ':''} ${m}min</span>`;}
+  if(watchedDates[film.id]){
+    const d=new Date(watchedDates[film.id]+'T12:00:00');
+    const fmt=d.toLocaleDateString('pt-BR',{day:'2-digit',month:'short',year:'numeric'});
+    tagsHtml+=`<span class="modal-tag">✓ Visto em ${fmt}</span>`;
+  }
   tags.innerHTML=tagsHtml;
 
   // scores
@@ -644,13 +674,9 @@ function openModal(film){
 
 function updateModalBtn(film){
   const btn=document.getElementById('modal-seen-btn');
-  const skipBtn=document.getElementById('modal-skip-btn');
   const isSeen=!!seen[film.id];
-  const isSkipped=!!skipped[film.id];
   btn.className=`modal-seen-btn ${isSeen?'is-seen':'not-seen'} ${film.studio}`;
   btn.textContent=isSeen?'✓ Marcado como visto':'Marcar como visto';
-  skipBtn.className=`modal-skip-btn ${isSkipped?'is-skipped':''}`;
-  skipBtn.textContent=isSkipped?'⏭ Ignorado':'⏭ Ignorar';
 }
 
 function closeModal(){
@@ -665,44 +691,27 @@ function render(){
   const sd=FILMS.filter(f=>f.studio==='disney'&&seen[f.id]).length;
   const sp=FILMS.filter(f=>f.studio==='pixar'&&seen[f.id]).length;
   document.getElementById('header-sub').textContent=`${FILMS.length} filmes · tracker de progresso`;
-  const pD=Math.round(sd/DISNEY_TOTAL*100);
-  document.getElementById('pct-disney').textContent=pD+'%';
-  document.getElementById('cnt-disney').textContent=` · ${sd} de ${DISNEY_TOTAL}`;
-  document.getElementById('bar-disney').style.width=pD+'%';
-  const pP=Math.round(sp/PIXAR_TOTAL*100);
-  document.getElementById('pct-pixar').textContent=pP+'%';
-  document.getElementById('cnt-pixar').textContent=` · ${sp} de ${PIXAR_TOTAL}`;
-  document.getElementById('bar-pixar').style.width=pP+'%';
 
-  const next=FILMS.find(f=>!seen[f.id]&&!skipped[f.id]);
+  // ── TOP NEXT-UP BANNER ────────────────────────────────────────────────
+  const next=FILMS.find(f=>!seen[f.id]);
+  const topWrap=document.getElementById('next-up-top-wrap');
   if(next){
-    document.getElementById('next-title').childNodes[0].textContent=next.title;
-    document.getElementById('next-title-pt').textContent=(next.pt&&next.pt!==next.title)?next.pt:'';
-    document.getElementById('next-year').textContent=next.year;
-    document.getElementById('next-studio').innerHTML=next.studio==='pixar'
-      ?'<span style="color:var(--pixar)">● Pixar</span>'
-      :'<span style="color:var(--gold)">● Disney</span>';
-    const nextUp=document.getElementById('next-up');
-    nextUp.style.display='flex';
-    nextUp.onclick=()=>{
-      const card=document.querySelector(`[data-film="${next.id}"]`);
-      if(card)card.scrollIntoView({behavior:'smooth',block:'center'});
-    };
-  }else document.getElementById('next-up').style.display='none';
-
-  const eg=document.getElementById('era-grid');eg.innerHTML='';
-  ERAS.forEach(era=>{
-    const films=FILMS.filter(f=>f.era===era.name);
-    const done=films.filter(f=>seen[f.id]).length;
-    const pct=films.length?Math.round(done/films.length*100):0;
-    const div=document.createElement('div');div.className='era-stat';
-    div.innerHTML=`<div class="era-stat-name">${era.icon} ${era.name}</div>
-      <div class="era-stat-count">${done}<span> / ${films.length}</span></div>
-      <div class="era-mini-bar"><div class="era-mini-fill" style="width:${pct}%"></div></div>`;
-    eg.appendChild(div);
-  });
+    const ptText=(next.pt&&next.pt!==next.title)?next.pt:'';
+    topWrap.innerHTML=`<div class="next-up" onclick="scrollToNext()" title="Ir para o próximo filme" style="margin-bottom:0;">
+      <span class="next-up-badge">▶ Próximo</span>
+      <div class="next-up-title">${next.title}<small style="display:block;font-family:'DM Sans',sans-serif;font-size:.75rem;font-weight:300;font-style:italic;color:var(--text-muted);margin-top:.1rem;">${ptText}</small></div>
+      <div class="next-up-meta">
+        <span class="next-up-year">${next.year}</span>
+        <span class="next-up-studio">${next.studio==='pixar'?'<span style="color:var(--pixar)">● Pixar</span>':'<span style="color:var(--gold)">● Disney</span>'}</span>
+      </div>
+    </div>`;
+  } else {
+    topWrap.innerHTML='';
+  }
 
   const main=document.getElementById('main');main.innerHTML='';const toLoad=[];
+
+  // ── ERA SECTIONS ──────────────────────────────────────────────────────
   ERAS.forEach(era=>{
     const films=FILMS.filter(f=>f.era===era.name).sort((a,b)=>a.year-b.year);
     const section=document.createElement('div');section.className='era-section';
@@ -712,15 +721,10 @@ function render(){
 
     films.forEach(film=>{
       const isSeen=!!seen[film.id];
-      const isSkipped=!!skipped[film.id];
       const card=document.createElement('div');
-      card.className=['movie-card',film.studio,
-        isSeen?'seen':'',isSeen&&showSeen?'show-seen':'',
-        isSkipped?'skipped':'',isSkipped&&showSeen?'show-seen':''
-      ].filter(Boolean).join(' ');
+      card.className=['movie-card',film.studio,isSeen?'seen':'',isSeen&&showSeen?'show-seen':''].filter(Boolean).join(' ');
       card.dataset.film=film.id;
       const ptHtml=(film.pt&&film.pt!==film.title)?`<div class="card-title-pt">${film.pt}</div>`:'';
-      const checkLabel=isSeen?'Visto':isSkipped?'<span style="color:#8070a8">⏭ Ignorado</span>':'Marcar';
       card.innerHTML=`
         <div class="studio-icon ${film.studio}">${film.studio==='pixar'?LAMP_SVG:CASTLE_SVG}</div>
         <div class="card-poster-wrap">
@@ -728,9 +732,11 @@ function render(){
           <div class="poster-placeholder"><span>🎬</span><span>${film.year}</span></div>
         </div>
         <div class="card-body">
-          <div class="card-title">${film.title}</div>
-          ${ptHtml}
-          <div class="card-year">${film.year}</div>
+          <div class="card-body-text">
+            <div class="card-title">${film.title}</div>
+            ${ptHtml}
+            <div class="card-year">${film.year}</div>
+          </div>
           <div class="card-actions">
             <div class="card-seen-btn">
               <div class="checkbox-box">
@@ -738,15 +744,13 @@ function render(){
                   <path d="M1 4L3.5 6.5L9 1" stroke="#000" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
               </div>
-              <span class="checkbox-label">${checkLabel}</span>
+              <span class="checkbox-label">${isSeen?'Visto':'Marcar'}</span>
             </div>
-            <div class="card-skip-btn" title="Ignorar este filme">⏭</div>
             <div class="card-info-btn" title="Ver detalhes">ℹ</div>
           </div>
         </div>`;
 
       card.querySelector('.card-seen-btn').addEventListener('click',e=>{e.stopPropagation();toggleSeen(film.id);});
-      card.querySelector('.card-skip-btn').addEventListener('click',e=>{e.stopPropagation();toggleSkip(film.id);});
       card.querySelector('.card-info-btn').addEventListener('click',e=>{e.stopPropagation();openModal(film);});
       card.addEventListener('click',()=>openModal(film));
       grid.appendChild(card);toLoad.push(film);
@@ -758,6 +762,7 @@ function render(){
     section.appendChild(em);main.appendChild(section);
   });
 
+  // ── UPCOMING ──────────────────────────────────────────────────────────
   const up=document.createElement('div');up.className='upcoming-section';
   up.innerHTML=`<div class="upcoming-title">🔜 Próximos lançamentos confirmados</div>
     <div class="upcoming-grid">
@@ -768,7 +773,65 @@ function render(){
       <div class="upcoming-chip pixar"><span class="chip-badge">PIX</span><strong>Incredibles 3</strong> · 2028</div>
       <div class="upcoming-chip pixar"><span class="chip-badge">PIX</span><strong>Coco 2</strong> · TBA</div>
     </div>`;
-  main.appendChild(up);updateEraEmpty();
+  main.appendChild(up);
+
+  // ── STATS SECTION (bottom) ────────────────────────────────────────────
+  const statsEl=document.createElement('div');
+  statsEl.id='stats-section';
+  statsEl.className='progress-section';
+  statsEl.style.cssText='border-top:1px solid var(--border);margin-top:3rem;padding-top:2rem;';
+
+  const pD=Math.round(sd/DISNEY_TOTAL*100);
+  const pP=Math.round(sp/PIXAR_TOTAL*100);
+
+  // next-up banner (clickable) — reuses `next` from top of render
+  const nextHtml=next?`
+    <div class="next-up" id="next-up" onclick="scrollToNext()" title="Ir para o próximo filme">
+      <span class="next-up-badge">▶ Próximo</span>
+      <div class="next-up-title">${next.title}<small style="display:block;font-family:'DM Sans',sans-serif;font-size:.75rem;font-weight:300;font-style:italic;color:var(--text-muted);margin-top:.1rem;">${(next.pt&&next.pt!==next.title)?next.pt:''}</small></div>
+      <div class="next-up-meta">
+        <span class="next-up-year">${next.year}</span>
+        <span class="next-up-studio">${next.studio==='pixar'?'<span style="color:var(--pixar)">● Pixar</span>':'<span style="color:var(--gold)">● Disney</span>'}</span>
+      </div>
+    </div>`:'';
+
+  // era grid
+  let eraGridHtml='<div class="era-grid">';
+  ERAS.forEach(era=>{
+    const films=FILMS.filter(f=>f.era===era.name);
+    const done=films.filter(f=>seen[f.id]).length;
+    const pct=films.length?Math.round(done/films.length*100):0;
+    eraGridHtml+=`<div class="era-stat">
+      <div class="era-stat-name">${era.icon} ${era.name}</div>
+      <div class="era-stat-count">${done}<span> / ${films.length}</span></div>
+      <div class="era-mini-bar"><div class="era-mini-fill" style="width:${pct}%"></div></div>
+    </div>`;
+  });
+  eraGridHtml+='</div>';
+
+  statsEl.innerHTML=`
+    <div style="font-family:'Playfair Display',serif;font-size:1rem;color:var(--text-muted);margin-bottom:1.5rem;letter-spacing:.05em;">📊 Estatísticas</div>
+    <div class="progress-row">
+      <div class="progress-main disney-card">
+        <div class="progress-top">
+          <span class="progress-label">🏰 Disney</span>
+          <div><span class="progress-percent disney-pct">${pD}%</span><span class="progress-count"> · ${sd} de ${DISNEY_TOTAL}</span></div>
+        </div>
+        <div class="progress-bar-wrap"><div class="progress-bar-fill disney-fill" style="width:${pD}%"></div></div>
+      </div>
+      <div class="progress-main pixar-card">
+        <div class="progress-top">
+          <span class="progress-label">🔵 Pixar</span>
+          <div><span class="progress-percent pixar-pct">${pP}%</span><span class="progress-count"> · ${sp} de ${PIXAR_TOTAL}</span></div>
+        </div>
+        <div class="progress-bar-wrap"><div class="progress-bar-fill pixar-fill" style="width:${pP}%"></div></div>
+      </div>
+    </div>
+    ${nextHtml}
+    ${eraGridHtml}`;
+  main.appendChild(statsEl);
+
+  updateEraEmpty();
   toLoad.forEach((film,i)=>setTimeout(()=>loadPoster(film.id,film.title,film.year),i*80));
 }
 
