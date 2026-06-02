@@ -229,6 +229,20 @@
   .next-up{cursor:pointer;}
   .next-up:hover .next-up-badge{background:var(--gold-dim);}
 
+  /* ── SUPABASE SYNC STATUS ── */
+  .sync-bar{display:flex;align-items:center;justify-content:center;gap:.6rem;
+    padding:.55rem 1rem;font-size:.72rem;letter-spacing:.04em;border-bottom:1px solid var(--border);}
+  .sync-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+  .sync-bar.synced .sync-dot{background:#2ec875;}
+  .sync-bar.local  .sync-dot{background:var(--text-dim);}
+  .sync-bar.saving .sync-dot{background:var(--gold);animation:pulse .8s infinite;}
+  .sync-bar.error  .sync-dot{background:#e87050;}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+  .sync-bar.synced{color:var(--text-muted);}
+  .sync-bar.local {color:var(--text-dim);}
+  .sync-bar.saving{color:var(--gold-dim);}
+  .sync-bar.error {color:#e87050;}
+
   /* ── TOAST ── */
   .toast-container{position:fixed;top:1.5rem;left:50%;transform:translateX(-50%);z-index:2000;
     display:flex;flex-direction:column;align-items:center;gap:.5rem;pointer-events:none;}
@@ -250,6 +264,11 @@
 <body>
 
 <div class="toast-container" id="toast-container"></div>
+
+<div class="sync-bar local" id="sync-bar">
+  <div class="sync-dot"></div>
+  <span id="sync-label">Conectando ao Supabase…</span>
+</div>
 
 <header>
   <h1>Disney & Pixar Tracker</h1>
@@ -566,9 +585,63 @@ let skipped=JSON.parse(localStorage.getItem('dp-skipped-v1')||'{}');
 let watchedDates=JSON.parse(localStorage.getItem('dp-dates-v1')||'{}');
 let showSeen=false,currentFilm=null;
 
-function save(){localStorage.setItem('dp-seen-v2',JSON.stringify(seen));}
-function saveSkipped(){localStorage.setItem('dp-skipped-v1',JSON.stringify(skipped));}
-function saveDates(){localStorage.setItem('dp-dates-v1',JSON.stringify(watchedDates));}
+// ── SUPABASE SYNC ─────────────────────────────────────────────────────────
+const SB_URL='https://pfpdpojqgglyjztcgjpp.supabase.co';
+const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBmcGRwb2pxZ2dseWp6dGNnanBwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA0MTgxNTAsImV4cCI6MjA5NTk5NDE1MH0.9LuVDLJHH_p8FF9b_RK18INAgjjMd4DyAYElhJWPu1g';
+const SB_HEADERS={'Content-Type':'application/json','apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY};
+let _saveTimer=null;
+
+function setSyncUI(state,label){
+  const bar=document.getElementById('sync-bar');
+  const lbl=document.getElementById('sync-label');
+  bar.className=`sync-bar ${state}`;
+  lbl.textContent=label;
+}
+
+async function loadFromSupabase(){
+  try{
+    setSyncUI('saving','Carregando progresso…');
+    const res=await fetch(`${SB_URL}/rest/v1/progress?id=eq.main&select=seen,skipped,watched_dates`,{headers:SB_HEADERS});
+    if(!res.ok) throw new Error(res.status);
+    const rows=await res.json();
+    if(rows.length){
+      if(rows[0].seen)       { seen=rows[0].seen;         localStorage.setItem('dp-seen-v2',JSON.stringify(seen)); }
+      if(rows[0].skipped)    { skipped=rows[0].skipped;   localStorage.setItem('dp-skipped-v1',JSON.stringify(skipped)); }
+      if(rows[0].watched_dates){ watchedDates=rows[0].watched_dates; localStorage.setItem('dp-dates-v1',JSON.stringify(watchedDates)); }
+      render();
+    }
+    setSyncUI('synced','✓ Sincronizado com Supabase');
+  }catch(e){
+    setSyncUI('error','Erro ao conectar — usando dados locais');
+  }
+}
+
+async function saveToSupabase(){
+  try{
+    setSyncUI('saving','Salvando…');
+    const res=await fetch(`${SB_URL}/rest/v1/progress?id=eq.main`,{
+      method:'PATCH',
+      headers:{...SB_HEADERS,'Prefer':'return=minimal'},
+      body:JSON.stringify({seen,skipped,watched_dates:watchedDates,updated_at:new Date().toISOString()})
+    });
+    if(!res.ok) throw new Error(res.status);
+    setSyncUI('synced',`✓ Salvo · ${new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}`);
+  }catch(e){
+    setSyncUI('error','Erro ao salvar — dados preservados localmente');
+  }
+}
+
+function _scheduleSave(){
+  clearTimeout(_saveTimer);
+  _saveTimer=setTimeout(saveToSupabase,600);
+}
+
+function save()       { localStorage.setItem('dp-seen-v2',    JSON.stringify(seen));         _scheduleSave(); }
+function saveSkipped(){ localStorage.setItem('dp-skipped-v1', JSON.stringify(skipped));      _scheduleSave(); }
+function saveDates()  { localStorage.setItem('dp-dates-v1',   JSON.stringify(watchedDates)); _scheduleSave(); }
+
+// Load from Supabase on startup
+loadFromSupabase();
 
 // ── TOAST ────────────────────────────────────────────────────────────────
 function showToast(icon,msg){
