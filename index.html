@@ -641,10 +641,19 @@ function scrollToStats(){
   if(el)el.scrollIntoView({behavior:'smooth',block:'start'});
 }
 function scrollToNext(){
-  const next=FILMS.find(f=>!seen[f.id]);
+  const next=FILMS.find(f=>!seen[f.id]&&!skipped[f.id]);
   if(!next)return;
   const card=document.querySelector(`[data-film="${next.id}"]`);
-  if(card)card.scrollIntoView({behavior:'smooth',block:'center'});
+  if(!card)return;
+  // If card is hidden (seen/skipped + toggle off), temporarily enable show-seen, scroll, then restore
+  const isHidden=getComputedStyle(card).display==='none';
+  if(isHidden){
+    card.style.display='block';
+    card.scrollIntoView({behavior:'smooth',block:'center'});
+    setTimeout(()=>{card.style.display='';},1200);
+  } else {
+    card.scrollIntoView({behavior:'smooth',block:'center'});
+  }
 }
 function openModal(film){
   currentFilm=film;
